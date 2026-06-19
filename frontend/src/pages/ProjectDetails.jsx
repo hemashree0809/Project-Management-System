@@ -2,8 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import Modal from '../components/Modal';
+<<<<<<< HEAD
 import { ArrowLeft, Plus, Trash2, Calendar, CheckSquare, ListTodo } from 'lucide-react';
 import { FaEdit } from 'react-icons/fa';
+=======
+import { ArrowLeft, Plus, Trash2, Calendar, CheckSquare, ListTodo, Pencil } from 'lucide-react';
+>>>>>>> d6f2704 (modified)
 
 /**
  * Single project details view featuring Tasks list management.
@@ -28,10 +32,17 @@ const ProjectDetails = () => {
   const [taskError, setTaskError] = useState('');
   const [submittingTask, setSubmittingTask] = useState(false);
 
+<<<<<<< HEAD
   // Task Editing Form State
   const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
   const [editTaskData, setEditTaskData] = useState({
     id: '',
+=======
+  // Task Edit Form State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+  const [editTaskData, setEditTaskData] = useState({
+>>>>>>> d6f2704 (modified)
     taskName: '',
     description: '',
     priority: 'MEDIUM',
@@ -39,7 +50,67 @@ const ProjectDetails = () => {
     dueDate: '',
   });
   const [editTaskError, setEditTaskError] = useState('');
+<<<<<<< HEAD
   const [editSubmittingTask, setEditSubmittingTask] = useState(false);
+=======
+  const [submittingEditTask, setSubmittingEditTask] = useState(false);
+
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    try {
+      const d = new Date(dateString);
+      if (isNaN(d.getTime())) return '';
+      return d.toISOString().split('T')[0];
+    } catch (err) {
+      return '';
+    }
+  };
+
+  const handleEditTaskClick = (task) => {
+    setEditingTask(task);
+    setEditTaskData({
+      taskName: task.taskName || '',
+      description: task.description || '',
+      priority: task.priority || 'MEDIUM',
+      status: task.status || 'PENDING',
+      dueDate: formatDateForInput(task.dueDate),
+    });
+    setEditTaskError('');
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditTaskInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditTaskData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditTaskSubmit = async (e) => {
+    e.preventDefault();
+    setEditTaskError('');
+
+    if (!editTaskData.taskName) {
+      setEditTaskError('Task name is required.');
+      return;
+    }
+
+    setSubmittingEditTask(true);
+    try {
+      await api.put(`/tasks/${editingTask.id}`, {
+        ...editTaskData,
+        projectId: id,
+        dueDate: editTaskData.dueDate || null,
+      });
+
+      setIsEditModalOpen(false);
+      setEditingTask(null);
+      fetchProjectDetails();
+    } catch (err) {
+      setEditTaskError(err.response?.data?.message || 'Failed to update task.');
+    } finally {
+      setSubmittingEditTask(false);
+    }
+  };
+>>>>>>> d6f2704 (modified)
 
   // Fetch project details (with tasks)
   const fetchProjectDetails = useCallback(async () => {
@@ -317,12 +388,21 @@ const ProjectDetails = () => {
                 </select>
 
                 <button
+<<<<<<< HEAD
                   onClick={() => handleOpenEditTaskModal(task)}
                   className="btn btn-secondary"
                   style={{ padding: '6px 12px', borderRadius: 'var(--radius-sm)', borderColor: 'var(--border)' }}
                   title="Edit Task"
                 >
                   <FaEdit size={16} />
+=======
+                  onClick={() => handleEditTaskClick(task)}
+                  className="btn btn-secondary"
+                  style={{ padding: '6px 12px', borderRadius: 'var(--radius-sm)' }}
+                  title="Edit Task"
+                >
+                  <Pencil size={16} />
+>>>>>>> d6f2704 (modified)
                 </button>
 
                 <button
@@ -440,7 +520,11 @@ const ProjectDetails = () => {
       </Modal>
 
       {/* Edit Task Modal */}
+<<<<<<< HEAD
       <Modal isOpen={isEditTaskModalOpen} onClose={() => setIsEditTaskModalOpen(false)} title="Edit Task">
+=======
+      <Modal isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); setEditingTask(null); }} title="Edit Task">
+>>>>>>> d6f2704 (modified)
         {editTaskError && <div className="alert alert-danger">{editTaskError}</div>}
 
         <form onSubmit={handleEditTaskSubmit}>
@@ -454,7 +538,11 @@ const ProjectDetails = () => {
               placeholder="e.g. Design Landing Page"
               value={editTaskData.taskName}
               onChange={handleEditTaskInputChange}
+<<<<<<< HEAD
               disabled={editSubmittingTask}
+=======
+              disabled={submittingEditTask}
+>>>>>>> d6f2704 (modified)
               required
             />
           </div>
@@ -469,7 +557,11 @@ const ProjectDetails = () => {
               placeholder="Provide a short description of the task..."
               value={editTaskData.description}
               onChange={handleEditTaskInputChange}
+<<<<<<< HEAD
               disabled={editSubmittingTask}
+=======
+              disabled={submittingEditTask}
+>>>>>>> d6f2704 (modified)
             />
           </div>
 
@@ -482,7 +574,11 @@ const ProjectDetails = () => {
                 className="form-control"
                 value={editTaskData.priority}
                 onChange={handleEditTaskInputChange}
+<<<<<<< HEAD
                 disabled={editSubmittingTask}
+=======
+                disabled={submittingEditTask}
+>>>>>>> d6f2704 (modified)
               >
                 <option value="LOW">Low</option>
                 <option value="MEDIUM">Medium</option>
@@ -497,7 +593,11 @@ const ProjectDetails = () => {
                 className="form-control"
                 value={editTaskData.status}
                 onChange={handleEditTaskInputChange}
+<<<<<<< HEAD
                 disabled={editSubmittingTask}
+=======
+                disabled={submittingEditTask}
+>>>>>>> d6f2704 (modified)
               >
                 <option value="PENDING">Pending</option>
                 <option value="IN_PROGRESS">In Progress</option>
@@ -515,7 +615,11 @@ const ProjectDetails = () => {
               className="form-control"
               value={editTaskData.dueDate}
               onChange={handleEditTaskInputChange}
+<<<<<<< HEAD
               disabled={editSubmittingTask}
+=======
+              disabled={submittingEditTask}
+>>>>>>> d6f2704 (modified)
             />
           </div>
 
@@ -523,17 +627,28 @@ const ProjectDetails = () => {
             <button
               type="button"
               className="btn btn-secondary"
+<<<<<<< HEAD
               onClick={() => setIsEditTaskModalOpen(false)}
               disabled={editSubmittingTask}
+=======
+              onClick={() => { setIsEditModalOpen(false); setEditingTask(null); }}
+              disabled={submittingEditTask}
+>>>>>>> d6f2704 (modified)
             >
               Cancel
             </button>
             <button
               type="submit"
               className="btn btn-primary"
+<<<<<<< HEAD
               disabled={editSubmittingTask}
             >
               {editSubmittingTask ? 'Saving...' : 'Save Changes'}
+=======
+              disabled={submittingEditTask}
+            >
+              {submittingEditTask ? 'Saving...' : 'Save Changes'}
+>>>>>>> d6f2704 (modified)
             </button>
           </div>
         </form>

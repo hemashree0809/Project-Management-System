@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 import Modal from '../components/Modal';
+<<<<<<< HEAD
 import { Calendar, Trash2, CheckSquare, ListTodo, Filter } from 'lucide-react';
 import { FaEdit } from 'react-icons/fa';
+=======
+import { Calendar, Trash2, CheckSquare, ListTodo, Filter, Pencil } from 'lucide-react';
+>>>>>>> d6f2704 (modified)
 
 /**
  * Tasks Overview list supporting filtering and operations.
@@ -17,18 +21,90 @@ const Tasks = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [projectFilter, setProjectFilter] = useState('');
 
+<<<<<<< HEAD
   // Edit Task Form State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editTaskData, setEditTaskData] = useState({
     id: '',
+=======
+  // Task Edit Form State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+  const [editTaskData, setEditTaskData] = useState({
+>>>>>>> d6f2704 (modified)
     taskName: '',
     description: '',
     priority: 'MEDIUM',
     status: 'PENDING',
     dueDate: '',
   });
+<<<<<<< HEAD
   const [editFormError, setEditFormError] = useState('');
   const [editSubmitting, setEditSubmitting] = useState(false);
+=======
+  const [editTaskError, setEditTaskError] = useState('');
+  const [submittingEditTask, setSubmittingEditTask] = useState(false);
+
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    try {
+      const d = new Date(dateString);
+      if (isNaN(d.getTime())) return '';
+      return d.toISOString().split('T')[0];
+    } catch (err) {
+      return '';
+    }
+  };
+
+  const handleEditTaskClick = (task) => {
+    setEditingTask(task);
+    setEditTaskData({
+      taskName: task.taskName || '',
+      description: task.description || '',
+      priority: task.priority || 'MEDIUM',
+      status: task.status || 'PENDING',
+      dueDate: formatDateForInput(task.dueDate),
+    });
+    setEditTaskError('');
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditTaskInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditTaskData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditTaskSubmit = async (e) => {
+    e.preventDefault();
+    setEditTaskError('');
+
+    if (!editTaskData.taskName) {
+      setEditTaskError('Task name is required.');
+      return;
+    }
+
+    setSubmittingEditTask(true);
+    try {
+      const response = await api.put(`/tasks/${editingTask.id}`, {
+        ...editTaskData,
+        projectId: editingTask.projectId,
+        dueDate: editTaskData.dueDate || null,
+      });
+
+      setIsEditModalOpen(false);
+      setEditingTask(null);
+
+      // Snappy UI state updates: update the task directly in the local array
+      setTasks((prevTasks) =>
+        prevTasks.map((t) => (t.id === editingTask.id ? { ...t, ...response.data.data.task } : t))
+      );
+    } catch (err) {
+      setEditTaskError(err.response?.data?.message || 'Failed to update task.');
+    } finally {
+      setSubmittingEditTask(false);
+    }
+  };
+>>>>>>> d6f2704 (modified)
 
   // Load user projects (for filter dropdown) and tasks list
   const loadFiltersAndTasks = useCallback(async () => {
@@ -262,12 +338,21 @@ const Tasks = () => {
                 </select>
 
                 <button
+<<<<<<< HEAD
                   onClick={() => handleOpenEditModal(task)}
                   className="btn btn-secondary"
                   style={{ padding: '6px 12px', borderRadius: 'var(--radius-sm)', borderColor: 'var(--border)' }}
                   title="Edit Task"
                 >
                   <FaEdit size={16} />
+=======
+                  onClick={() => handleEditTaskClick(task)}
+                  className="btn btn-secondary"
+                  style={{ padding: '6px 12px', borderRadius: 'var(--radius-sm)' }}
+                  title="Edit Task"
+                >
+                  <Pencil size={16} />
+>>>>>>> d6f2704 (modified)
                 </button>
 
                 <button
@@ -285,10 +370,17 @@ const Tasks = () => {
       )}
 
       {/* Edit Task Modal */}
+<<<<<<< HEAD
       <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Task">
         {editFormError && <div className="alert alert-danger">{editFormError}</div>}
 
         <form onSubmit={handleEditSubmit}>
+=======
+      <Modal isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); setEditingTask(null); }} title="Edit Task">
+        {editTaskError && <div className="alert alert-danger">{editTaskError}</div>}
+
+        <form onSubmit={handleEditTaskSubmit}>
+>>>>>>> d6f2704 (modified)
           <div className="form-group">
             <label className="form-label" htmlFor="editTaskName">Task Name</label>
             <input
@@ -298,8 +390,13 @@ const Tasks = () => {
               className="form-control"
               placeholder="e.g. Design Landing Page"
               value={editTaskData.taskName}
+<<<<<<< HEAD
               onChange={handleEditInputChange}
               disabled={editSubmitting}
+=======
+              onChange={handleEditTaskInputChange}
+              disabled={submittingEditTask}
+>>>>>>> d6f2704 (modified)
               required
             />
           </div>
@@ -313,8 +410,13 @@ const Tasks = () => {
               rows="3"
               placeholder="Provide a short description of the task..."
               value={editTaskData.description}
+<<<<<<< HEAD
               onChange={handleEditInputChange}
               disabled={editSubmitting}
+=======
+              onChange={handleEditTaskInputChange}
+              disabled={submittingEditTask}
+>>>>>>> d6f2704 (modified)
             />
           </div>
 
@@ -326,8 +428,13 @@ const Tasks = () => {
                 name="priority"
                 className="form-control"
                 value={editTaskData.priority}
+<<<<<<< HEAD
                 onChange={handleEditInputChange}
                 disabled={editSubmitting}
+=======
+                onChange={handleEditTaskInputChange}
+                disabled={submittingEditTask}
+>>>>>>> d6f2704 (modified)
               >
                 <option value="LOW">Low</option>
                 <option value="MEDIUM">Medium</option>
@@ -341,8 +448,13 @@ const Tasks = () => {
                 name="status"
                 className="form-control"
                 value={editTaskData.status}
+<<<<<<< HEAD
                 onChange={handleEditInputChange}
                 disabled={editSubmitting}
+=======
+                onChange={handleEditTaskInputChange}
+                disabled={submittingEditTask}
+>>>>>>> d6f2704 (modified)
               >
                 <option value="PENDING">Pending</option>
                 <option value="IN_PROGRESS">In Progress</option>
@@ -359,8 +471,13 @@ const Tasks = () => {
               type="date"
               className="form-control"
               value={editTaskData.dueDate}
+<<<<<<< HEAD
               onChange={handleEditInputChange}
               disabled={editSubmitting}
+=======
+              onChange={handleEditTaskInputChange}
+              disabled={submittingEditTask}
+>>>>>>> d6f2704 (modified)
             />
           </div>
 
@@ -368,17 +485,28 @@ const Tasks = () => {
             <button
               type="button"
               className="btn btn-secondary"
+<<<<<<< HEAD
               onClick={() => setIsEditModalOpen(false)}
               disabled={editSubmitting}
+=======
+              onClick={() => { setIsEditModalOpen(false); setEditingTask(null); }}
+              disabled={submittingEditTask}
+>>>>>>> d6f2704 (modified)
             >
               Cancel
             </button>
             <button
               type="submit"
               className="btn btn-primary"
+<<<<<<< HEAD
               disabled={editSubmitting}
             >
               {editSubmitting ? 'Saving...' : 'Save Changes'}
+=======
+              disabled={submittingEditTask}
+            >
+              {submittingEditTask ? 'Saving...' : 'Save Changes'}
+>>>>>>> d6f2704 (modified)
             </button>
           </div>
         </form>
