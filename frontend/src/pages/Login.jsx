@@ -59,7 +59,7 @@ const Login = () => {
               className="form-control"
               placeholder="name@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => { setEmail(e.target.value); setError(''); }}
               disabled={submitting}
               required
             />
@@ -74,7 +74,7 @@ const Login = () => {
                 className="form-control"
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value); setError(''); }}
                 disabled={submitting}
                 required
                 style={{ paddingRight: '45px' }}
@@ -98,7 +98,7 @@ const Login = () => {
                   justifyContent: 'center',
                 }}
               >
-                {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+                {showPassword ? <FaEye size={20} /> : <FaEyeSlash size={20} />}
               </button>
             </div>
           </div>
