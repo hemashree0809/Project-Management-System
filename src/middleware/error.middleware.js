@@ -24,7 +24,7 @@ const errorHandler = (err, req, res, next) => {
       res.status(409);
       return res.json({
         success: false,
-        message: 'A record with this value already exists.',
+        message: 'An account with this email already exists.',
         code: err.code,
       });
     }

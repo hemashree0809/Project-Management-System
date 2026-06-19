@@ -90,6 +90,13 @@ button, .btn {
   transition: var(--transition);
 }
 
+button:disabled, .btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 .btn-primary {
   background-color: var(--primary);
   color: #fff;
