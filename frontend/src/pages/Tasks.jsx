@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
+import Modal from '../components/Modal';
 import { Calendar, Trash2, CheckSquare, ListTodo, Filter } from 'lucide-react';
+import { FaEdit } from 'react-icons/fa';
 
 /**
  * Tasks Overview list supporting filtering and operations.
@@ -14,6 +16,19 @@ const Tasks = () => {
   // Filtering states
   const [statusFilter, setStatusFilter] = useState('');
   const [projectFilter, setProjectFilter] = useState('');
+
+  // Edit Task Form State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editTaskData, setEditTaskData] = useState({
+    id: '',
+    taskName: '',
+    description: '',
+    priority: 'MEDIUM',
+    status: 'PENDING',
+    dueDate: '',
+  });
+  const [editFormError, setEditFormError] = useState('');
+  const [editSubmitting, setEditSubmitting] = useState(false);
 
   // Load user projects (for filter dropdown) and tasks list
   const loadFiltersAndTasks = useCallback(async () => {
@@ -71,6 +86,64 @@ const Tasks = () => {
       setTasks((prevTasks) => prevTasks.filter((t) => t.id !== taskId));
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to delete task.');
+    }
+  };
+
+  // Handle edit task form inputs
+  const handleEditInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditTaskData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Open Edit Task Modal and populate data
+  const handleOpenEditModal = (task) => {
+    const formatForInput = (dateString) => {
+      if (!dateString) return '';
+      const d = new Date(dateString);
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const year = d.getFullYear();
+      return `${year}-${month}-${day}`;
+    };
+
+    setEditTaskData({
+      id: task.id,
+      taskName: task.taskName || '',
+      description: task.description || '',
+      priority: task.priority || 'MEDIUM',
+      status: task.status || 'PENDING',
+      dueDate: formatForInput(task.dueDate),
+    });
+    setEditFormError('');
+    setIsEditModalOpen(true);
+  };
+
+  // Submit task updates
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setEditFormError('');
+
+    if (!editTaskData.taskName) {
+      setEditFormError('Task name is required.');
+      return;
+    }
+
+    setEditSubmitting(true);
+    try {
+      await api.put(`/tasks/${editTaskData.id}`, {
+        taskName: editTaskData.taskName,
+        description: editTaskData.description || null,
+        priority: editTaskData.priority,
+        status: editTaskData.status,
+        dueDate: editTaskData.dueDate || null,
+      });
+
+      setIsEditModalOpen(false);
+      loadFiltersAndTasks();
+    } catch (err) {
+      setEditFormError(err.response?.data?.message || 'Failed to update task.');
+    } finally {
+      setEditSubmitting(false);
     }
   };
 
@@ -189,6 +262,15 @@ const Tasks = () => {
                 </select>
 
                 <button
+                  onClick={() => handleOpenEditModal(task)}
+                  className="btn btn-secondary"
+                  style={{ padding: '6px 12px', borderRadius: 'var(--radius-sm)', borderColor: 'var(--border)' }}
+                  title="Edit Task"
+                >
+                  <FaEdit size={16} />
+                </button>
+
+                <button
                   onClick={() => handleDeleteTask(task.id)}
                   className="btn btn-danger"
                   style={{ padding: '6px 12px', borderRadius: 'var(--radius-sm)' }}
@@ -201,6 +283,106 @@ const Tasks = () => {
           ))}
         </div>
       )}
+
+      {/* Edit Task Modal */}
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Task">
+        {editFormError && <div className="alert alert-danger">{editFormError}</div>}
+
+        <form onSubmit={handleEditSubmit}>
+          <div className="form-group">
+            <label className="form-label" htmlFor="editTaskName">Task Name</label>
+            <input
+              id="editTaskName"
+              name="taskName"
+              type="text"
+              className="form-control"
+              placeholder="e.g. Design Landing Page"
+              value={editTaskData.taskName}
+              onChange={handleEditInputChange}
+              disabled={editSubmitting}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="editTaskDescription">Description</label>
+            <textarea
+              id="editTaskDescription"
+              name="description"
+              className="form-control"
+              rows="3"
+              placeholder="Provide a short description of the task..."
+              value={editTaskData.description}
+              onChange={handleEditInputChange}
+              disabled={editSubmitting}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="form-group">
+              <label className="form-label" htmlFor="editPriority">Priority</label>
+              <select
+                id="editPriority"
+                name="priority"
+                className="form-control"
+                value={editTaskData.priority}
+                onChange={handleEditInputChange}
+                disabled={editSubmitting}
+              >
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HIGH">High</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="editTaskStatus">Status</label>
+              <select
+                id="editTaskStatus"
+                name="status"
+                className="form-control"
+                value={editTaskData.status}
+                onChange={handleEditInputChange}
+                disabled={editSubmitting}
+              >
+                <option value="PENDING">Pending</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="COMPLETED">Completed</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="editDueDate">Due Date</label>
+            <input
+              id="editDueDate"
+              name="dueDate"
+              type="date"
+              className="form-control"
+              value={editTaskData.dueDate}
+              onChange={handleEditInputChange}
+              disabled={editSubmitting}
+            />
+          </div>
+
+          <div className="modal-footer" style={{ margin: '20px -24px -24px -24px' }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setIsEditModalOpen(false)}
+              disabled={editSubmitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={editSubmitting}
+            >
+              {editSubmitting ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

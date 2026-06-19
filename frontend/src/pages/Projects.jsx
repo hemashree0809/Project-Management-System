@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import Modal from '../components/Modal';
 import { Plus, Trash2, Calendar, FolderClock, Filter } from 'lucide-react';
+import { FaEdit } from 'react-icons/fa';
 
 /**
  * Projects overview and CRUD panel.
@@ -35,6 +36,19 @@ const Projects = () => {
   });
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Edit Project Form state
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    id: '',
+    projectName: '',
+    description: '',
+    status: 'NOT_STARTED',
+    startDate: '',
+    endDate: '',
+  });
+  const [editFormError, setEditFormError] = useState('');
+  const [editSubmitting, setEditSubmitting] = useState(false);
 
   const navigate = useNavigate();
 
@@ -123,6 +137,71 @@ const Projects = () => {
       fetchProjects();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to delete project.');
+    }
+  };
+
+  // Handle edit form inputs
+  const handleEditInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Open Edit Modal and load project data
+  const handleOpenEditModal = (project, e) => {
+    e.stopPropagation(); // Stop card click navigation
+    
+    const formatForInput = (dateString) => {
+      if (!dateString) return '';
+      const d = new Date(dateString);
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const year = d.getFullYear();
+      return `${year}-${month}-${day}`;
+    };
+
+    setEditFormData({
+      id: project.id,
+      projectName: project.projectName || '',
+      description: project.description || '',
+      status: project.status || 'NOT_STARTED',
+      startDate: formatForInput(project.startDate),
+      endDate: formatForInput(project.endDate),
+    });
+    setEditFormError('');
+    setIsEditModalOpen(true);
+  };
+
+  // Submit project updates
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setEditFormError('');
+
+    if (!editFormData.projectName) {
+      setEditFormError('Project name is required.');
+      return;
+    }
+
+    if (editFormData.startDate && editFormData.endDate && new Date(editFormData.endDate) < new Date(editFormData.startDate)) {
+      setEditFormError('End date cannot be earlier than start date.');
+      return;
+    }
+
+    setEditSubmitting(true);
+    try {
+      await api.put(`/projects/${editFormData.id}`, {
+        projectName: editFormData.projectName,
+        description: editFormData.description || null,
+        status: editFormData.status,
+        startDate: editFormData.startDate || null,
+        endDate: editFormData.endDate || null,
+      });
+
+      setIsEditModalOpen(false);
+      fetchProjects();
+    } catch (err) {
+      setEditFormError(err.response?.data?.message || 'Failed to update project.');
+    } finally {
+      setEditSubmitting(false);
     }
   };
 
@@ -228,16 +307,26 @@ const Projects = () => {
                   </div>
                 </div>
 
-                <div className="project-card-footer">
+                <div className="project-card-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span>{project._count?.tasks || 0} tasks</span>
-                  <button
-                    onClick={(e) => handleDelete(project.id, e)}
-                    className="btn btn-danger"
-                    style={{ padding: '6px 12px', borderRadius: 'var(--radius-sm)' }}
-                    title="Delete Project"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      onClick={(e) => handleOpenEditModal(project, e)}
+                      className="btn btn-secondary"
+                      style={{ padding: '6px 12px', borderRadius: 'var(--radius-sm)', borderColor: 'var(--border)' }}
+                      title="Edit Project"
+                    >
+                      <FaEdit size={16} />
+                    </button>
+                    <button
+                      onClick={(e) => handleDelete(project.id, e)}
+                      className="btn btn-danger"
+                      style={{ padding: '6px 12px', borderRadius: 'var(--radius-sm)' }}
+                      title="Delete Project"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -360,6 +449,102 @@ const Projects = () => {
               disabled={submitting}
             >
               {submitting ? 'Creating...' : 'Create Project'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+      {/* Edit Modal */}
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Project">
+        {editFormError && <div className="alert alert-danger">{editFormError}</div>}
+        
+        <form onSubmit={handleEditSubmit}>
+          <div className="form-group">
+            <label className="form-label" htmlFor="editProjectName">Project Name</label>
+            <input
+              id="editProjectName"
+              name="projectName"
+              type="text"
+              className="form-control"
+              placeholder="e.g. Website Redesign"
+              value={editFormData.projectName}
+              onChange={handleEditInputChange}
+              disabled={editSubmitting}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="editDescription">Description</label>
+            <textarea
+              id="editDescription"
+              name="description"
+              className="form-control"
+              rows="3"
+              placeholder="Brief description of project goals..."
+              value={editFormData.description}
+              onChange={handleEditInputChange}
+              disabled={editSubmitting}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="editStatus">Status</label>
+            <select
+              id="editStatus"
+              name="status"
+              className="form-control"
+              value={editFormData.status}
+              onChange={handleEditInputChange}
+              disabled={editSubmitting}
+            >
+              <option value="NOT_STARTED">Not Started</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="COMPLETED">Completed</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="form-group">
+              <label className="form-label" htmlFor="editStartDate">Start Date</label>
+              <input
+                id="editStartDate"
+                name="startDate"
+                type="date"
+                className="form-control"
+                value={editFormData.startDate}
+                onChange={handleEditInputChange}
+                disabled={editSubmitting}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="editEndDate">End Date</label>
+              <input
+                id="editEndDate"
+                name="endDate"
+                type="date"
+                className="form-control"
+                value={editFormData.endDate}
+                onChange={handleEditInputChange}
+                disabled={editSubmitting}
+              />
+            </div>
+          </div>
+
+          <div className="modal-footer" style={{ margin: '20px -24px -24px -24px' }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setIsEditModalOpen(false)}
+              disabled={editSubmitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={editSubmitting}
+            >
+              {editSubmitting ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>

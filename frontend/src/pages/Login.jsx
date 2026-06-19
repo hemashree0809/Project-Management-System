@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { KeyRound } from 'lucide-react';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 /**
  * Login Page screen.
@@ -91,13 +92,13 @@ const Login = () => {
                   border: 'none',
                   padding: 0,
                   cursor: 'pointer',
-                  fontSize: '20px',
+                  color: 'var(--text-secondary)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                {showPassword ? '🙈' : '👁️'}
+                {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
               </button>
             </div>
           </div>
