@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create Axios client targeting our Express backend
 const api = axios.create({
-  baseURL: 'http://localhost:5001/api',
+  baseURL: 'https://project-management-system-sl4i.onrender.com/api',
   headers: {
     'Content-Type': 'application/json',
   },

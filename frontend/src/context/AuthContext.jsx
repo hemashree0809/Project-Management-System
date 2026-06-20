@@ -50,7 +50,11 @@ export const AuthProvider = ({ children }) => {
 
       return data;
     } catch (error) {
-      throw error.response?.data?.message || error.message || 'Login failed. Please check credentials.';
+      console.log("LOGIN ERROR FULL:", error);
+      console.log("RESPONSE:", error.response);
+      console.log("MESSAGE:", error.message);
+
+      throw error.response?.data?.message || error.message || 'Login failed';
     }
   };
 
