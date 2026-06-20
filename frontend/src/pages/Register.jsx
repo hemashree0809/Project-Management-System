@@ -49,9 +49,22 @@ const Register = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [isSlowResponse, setIsSlowResponse] = useState(false);
   
   const { register } = useAuth();
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    const handleLatencyWarning = (e) => {
+      setIsSlowResponse(e.detail?.isSlow ?? false);
+    };
+
+    window.addEventListener('api-latency-warning', handleLatencyWarning);
+    return () => {
+      window.removeEventListener('api-latency-warning', handleLatencyWarning);
+      setIsSlowResponse(false);
+    };
+  }, []);
 
   // Email validation regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -95,6 +108,7 @@ const Register = () => {
       setError(err);
     } finally {
       setSubmitting(false);
+      setIsSlowResponse(false);
     }
   };
 
@@ -111,6 +125,11 @@ const Register = () => {
 
         {error && <div className="alert alert-danger">{error}</div>}
         {success && <div className="alert" style={{ backgroundColor: '#ecfdf5', color: '#059669', border: '1px solid #d1fae5' }}>{success}</div>}
+        {isSlowResponse && (
+          <div className="alert alert-warning" style={{ backgroundColor: '#fffbeb', border: '1px solid #fef3c7', color: '#b45309', padding: '12px 16px', borderRadius: 'var(--radius-md)', fontSize: '0.9rem', marginBottom: '20px', fontWeight: '500' }}>
+            ⏳ Waking up the server... The free backend database and hosting tier takes up to 45 seconds to spin up when inactive. Thank you for your patience!
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
