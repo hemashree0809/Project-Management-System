@@ -35,26 +35,17 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await api.post('/auth/login', { email, password });
+      const { user: userData, token: userToken } = response.data.data;
 
-      const data = response.data?.data;
+      localStorage.setItem('token', userToken);
+      localStorage.setItem('user', JSON.stringify(userData));
 
-      if (!data || !data.token || !data.user) {
-        throw new Error('Invalid response from server');
-      }
+      setToken(userToken);
+      setUser(userData);
 
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-
-      setToken(data.token);
-      setUser(data.user);
-
-      return data;
+      return response.data;
     } catch (error) {
-      console.log("LOGIN ERROR FULL:", error);
-      console.log("RESPONSE:", error.response);
-      console.log("MESSAGE:", error.message);
-
-      throw error.response?.data?.message || error.message || 'Login failed';
+      throw error.response?.data?.message || 'Login failed. Please check credentials.';
     }
   };
 
