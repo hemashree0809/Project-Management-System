@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 import Modal from '../components/Modal';
-import { Calendar, Trash2, ListTodo, Filter, Pencil } from 'lucide-react';
+import { Calendar, Trash2, ListTodo, Filter, Pencil, Folder } from 'lucide-react';
 
 /**
  * Tasks Overview list supporting filtering and operations.
@@ -148,81 +148,136 @@ const Tasks = () => {
   return (
     <div>
       <div className="page-header">
-        <h1>Tasks Board</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>
-          Review and manage all your tasks across projects.
-        </p>
+        <div>
+          <h1>Tasks Board</h1>
+          <p style={{ color: 'var(--text-secondary)' }}>
+            Review and manage all your tasks across projects.
+          </p>
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="filter-row">
-        <div className="filter-group">
-          <Filter size={18} />
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="">All Statuses</option>
-            <option value="PENDING">Pending</option>
-            <option value="IN_PROGRESS">In Progress</option>
-            <option value="COMPLETED">Completed</option>
-          </select>
-        </div>
+      <div className="filter-row" style={{
+        backgroundColor: 'var(--bg-secondary)',
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-lg)',
+        padding: '16px 24px',
+        boxShadow: 'var(--shadow-sm)'
+      }}>
+        <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+          <div className="filter-group">
+            <Filter size={16} style={{ color: 'var(--text-secondary)' }} />
+            <span style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Status:</span>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="filter-select"
+            >
+              <option value="">All Statuses</option>
+              <option value="PENDING">Pending</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="COMPLETED">Completed</option>
+            </select>
+          </div>
 
-        <div className="filter-group">
-          <Filter size={18} />
-          <select value={projectFilter} onChange={(e) => setProjectFilter(e.target.value)}>
-            <option value="">All Projects</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.projectName}
-              </option>
-            ))}
-          </select>
+          <div className="filter-group">
+            <Filter size={16} style={{ color: 'var(--text-secondary)' }} />
+            <span style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Project:</span>
+            <select
+              value={projectFilter}
+              onChange={(e) => setProjectFilter(e.target.value)}
+              className="filter-select"
+            >
+              <option value="">All Projects</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.projectName}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
       {error && <div className="alert alert-danger">{error}</div>}
 
       {loading ? (
-        <div className="loader-container"><div className="spinner" /></div>
+        <div className="loader-container">
+          <div className="spinner"></div>
+        </div>
       ) : tasks.length === 0 ? (
         <div className="empty-state">
           <ListTodo size={48} />
           <h3>No tasks found</h3>
+          <p>Try resetting your status or project filters.</p>
         </div>
       ) : (
-        tasks.map((task) => (
-          <div key={task.id} className="task-item">
-            <div>
-              <h4>{task.taskName}</h4>
-              <p>{task.description}</p>
+        <div className="tasks-grid">
+          {tasks.map((task) => (
+            <div key={task.id} className={`task-card priority-${task.priority.toLowerCase()}`}>
+              <div>
+                <div className="task-card-project">
+                  <Folder size={14} style={{ marginRight: '4px' }} />
+                  {task.project?.projectName || 'No Project'}
+                </div>
+                <h3 className="task-card-title">{task.taskName}</h3>
+                <p className="task-card-desc">
+                  {task.description || 'No description provided.'}
+                </p>
+              </div>
 
-              <span>Priority: {task.priority}</span>
-              {task.dueDate && (
-                <span>
-                  <Calendar size={14} /> {formatDate(task.dueDate)}
-                </span>
-              )}
+              <div>
+                <div className="task-card-meta">
+                  <span className={`badge badge-${task.priority.toLowerCase()}`}>
+                    {task.priority}
+                  </span>
+                  
+                  {task.dueDate ? (
+                    <div className="task-card-date">
+                      <Calendar size={14} />
+                      <span>{formatDate(task.dueDate)}</span>
+                    </div>
+                  ) : (
+                    <div className="task-card-date" style={{ color: 'var(--text-light)' }}>
+                      <Calendar size={14} />
+                      <span>No due date</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="task-card-footer">
+                  <select
+                    value={task.status}
+                    onChange={(e) => handleStatusChange(task.id, e.target.value)}
+                    className="filter-select"
+                    style={{ fontSize: '0.85rem', padding: '6px 10px', width: 'auto' }}
+                  >
+                    <option value="PENDING">Pending</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="COMPLETED">Completed</option>
+                  </select>
+
+                  <div className="task-card-actions">
+                    <button
+                      onClick={() => handleEditTaskClick(task)}
+                      className="task-btn-action"
+                      title="Edit Task"
+                    >
+                      <Pencil size={15} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteTask(task.id)}
+                      className="task-btn-action task-btn-danger"
+                      title="Delete Task"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-
-            <div className="task-item-actions">
-              <select
-                value={task.status}
-                onChange={(e) => handleStatusChange(task.id, e.target.value)}
-              >
-                <option value="PENDING">Pending</option>
-                <option value="IN_PROGRESS">In Progress</option>
-                <option value="COMPLETED">Completed</option>
-              </select>
-
-              <button onClick={() => handleEditTaskClick(task)}>
-                <Pencil size={16} />
-              </button>
-
-              <button onClick={() => handleDeleteTask(task.id)}>
-                <Trash2 size={16} />
-              </button>
-            </div>
-          </div>
-        ))
+          ))}
+        </div>
       )}
 
       {/* EDIT MODAL */}
@@ -237,46 +292,96 @@ const Tasks = () => {
         {editTaskError && <div className="alert alert-danger">{editTaskError}</div>}
 
         <form onSubmit={handleEditTaskSubmit}>
-          <input
-            name="taskName"
-            value={editTaskData.taskName}
-            onChange={handleEditTaskInputChange}
-            placeholder="Task name"
-          />
+          <div className="form-group">
+            <label className="form-label" htmlFor="editTaskName">Task Name</label>
+            <input
+              id="editTaskName"
+              name="taskName"
+              type="text"
+              className="form-control"
+              placeholder="e.g. Design landing page"
+              value={editTaskData.taskName}
+              onChange={handleEditTaskInputChange}
+              disabled={submittingEditTask}
+              required
+            />
+          </div>
 
-          <textarea
-            name="description"
-            value={editTaskData.description}
-            onChange={handleEditTaskInputChange}
-            placeholder="Description"
-          />
+          <div className="form-group">
+            <label className="form-label" htmlFor="editDescription">Description</label>
+            <textarea
+              id="editDescription"
+              name="description"
+              className="form-control"
+              rows="3"
+              placeholder="Provide a short description of the task..."
+              value={editTaskData.description}
+              onChange={handleEditTaskInputChange}
+              disabled={submittingEditTask}
+            />
+          </div>
 
-          <select name="priority" value={editTaskData.priority} onChange={handleEditTaskInputChange}>
-            <option value="LOW">Low</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="HIGH">High</option>
-          </select>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="form-group">
+              <label className="form-label" htmlFor="editPriority">Priority</label>
+              <select
+                id="editPriority"
+                name="priority"
+                className="form-control"
+                value={editTaskData.priority}
+                onChange={handleEditTaskInputChange}
+                disabled={submittingEditTask}
+              >
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HIGH">High</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="editStatus">Status</label>
+              <select
+                id="editStatus"
+                name="status"
+                className="form-control"
+                value={editTaskData.status}
+                onChange={handleEditTaskInputChange}
+                disabled={submittingEditTask}
+              >
+                <option value="PENDING">Pending</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="COMPLETED">Completed</option>
+              </select>
+            </div>
+          </div>
 
-          <select name="status" value={editTaskData.status} onChange={handleEditTaskInputChange}>
-            <option value="PENDING">Pending</option>
-            <option value="IN_PROGRESS">In Progress</option>
-            <option value="COMPLETED">Completed</option>
-          </select>
+          <div className="form-group">
+            <label className="form-label" htmlFor="editDueDate">Due Date</label>
+            <input
+              id="editDueDate"
+              name="dueDate"
+              type="date"
+              className="form-control"
+              value={editTaskData.dueDate}
+              onChange={handleEditTaskInputChange}
+              disabled={submittingEditTask}
+            />
+          </div>
 
-          <input
-            type="date"
-            name="dueDate"
-            value={editTaskData.dueDate}
-            onChange={handleEditTaskInputChange}
-          />
-
-          <div className="modal-footer">
-            <button type="button" onClick={() => setIsEditModalOpen(false)}>
+          <div className="modal-footer" style={{ margin: '20px -24px -24px -24px' }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setIsEditModalOpen(false)}
+              disabled={submittingEditTask}
+            >
               Cancel
             </button>
-
-            <button type="submit" disabled={submittingEditTask}>
-              {submittingEditTask ? 'Saving...' : 'Save'}
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={submittingEditTask}
+            >
+              {submittingEditTask ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>
@@ -284,4 +389,6 @@ const Tasks = () => {
     </div>
   );
 };
+
+export default Tasks;
 

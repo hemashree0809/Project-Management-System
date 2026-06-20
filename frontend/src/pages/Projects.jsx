@@ -2,12 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import Modal from '../components/Modal';
-<<<<<<< HEAD
 import { Plus, Trash2, Calendar, FolderClock, Filter } from 'lucide-react';
 import { FaEdit } from 'react-icons/fa';
-=======
-import { Plus, Trash2, Calendar, FolderClock, Filter, Pencil } from 'lucide-react';
->>>>>>> d6f2704 (modified)
 
 /**
  * Projects overview and CRUD panel.
@@ -41,17 +37,10 @@ const Projects = () => {
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-<<<<<<< HEAD
-  // Edit Project Form state
+  // Edit Project State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({
     id: '',
-=======
-  // Edit Project State
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState(null);
-  const [editFormData, setEditFormData] = useState({
->>>>>>> d6f2704 (modified)
     projectName: '',
     description: '',
     status: 'NOT_STARTED',
@@ -74,60 +63,7 @@ const Projects = () => {
     }
   };
 
-  const handleEditClick = (project, e) => {
-    e.stopPropagation();
-    setEditingProject(project);
-    setEditFormData({
-      projectName: project.projectName || '',
-      description: project.description || '',
-      status: project.status || 'NOT_STARTED',
-      startDate: formatDateForInput(project.startDate),
-      endDate: formatDateForInput(project.endDate),
-    });
-    setEditFormError('');
-    setIsEditModalOpen(true);
-  };
 
-  const handleEditInputChange = (e) => {
-    const { name, value } = e.target;
-    setEditFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleEditSubmit = async (e) => {
-    e.preventDefault();
-    setEditFormError('');
-
-    if (!editFormData.projectName) {
-      setEditFormError('Project name is required.');
-      return;
-    }
-
-    if (editFormData.startDate && editFormData.endDate && new Date(editFormData.endDate) < new Date(editFormData.startDate)) {
-      setEditFormError('End date cannot be earlier than start date.');
-      return;
-    }
-
-    setEditSubmitting(true);
-    try {
-      const response = await api.put(`/projects/${editingProject.id}`, {
-        ...editFormData,
-        startDate: editFormData.startDate || null,
-        endDate: editFormData.endDate || null,
-      });
-
-      setIsEditModalOpen(false);
-      setEditingProject(null);
-      
-      // Update local state without reloading
-      setProjects((prev) =>
-        prev.map((proj) => (proj.id === editingProject.id ? { ...proj, ...response.data.data.project } : proj))
-      );
-    } catch (err) {
-      setEditFormError(err.response?.data?.message || 'Failed to update project.');
-    } finally {
-      setEditSubmitting(false);
-    }
-  };
 
   // Load projects from API
   const fetchProjects = useCallback(async () => {
@@ -226,7 +162,7 @@ const Projects = () => {
   // Open Edit Modal and load project data
   const handleOpenEditModal = (project, e) => {
     e.stopPropagation(); // Stop card click navigation
-    
+
     const formatForInput = (dateString) => {
       if (!dateString) return '';
       const d = new Date(dateString);
@@ -368,7 +304,7 @@ const Projects = () => {
                     {project.status.replace('_', ' ')}
                   </span>
                 </div>
-                
+
                 <p className="project-card-desc">
                   {project.description || 'No description provided.'}
                 </p>
@@ -384,7 +320,6 @@ const Projects = () => {
                   </div>
                 </div>
 
-<<<<<<< HEAD
                 <div className="project-card-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span>{project._count?.tasks || 0} tasks</span>
                   <div style={{ display: 'flex', gap: '8px' }}>
@@ -395,18 +330,6 @@ const Projects = () => {
                       title="Edit Project"
                     >
                       <FaEdit size={16} />
-=======
-                 <div className="project-card-footer">
-                  <span>{project._count?.tasks || 0} tasks</span>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                      onClick={(e) => handleEditClick(project, e)}
-                      className="btn btn-secondary"
-                      style={{ padding: '6px 12px', borderRadius: 'var(--radius-sm)' }}
-                      title="Edit Project"
-                    >
-                      <Pencil size={16} />
->>>>>>> d6f2704 (modified)
                     </button>
                     <button
                       onClick={(e) => handleDelete(project.id, e)}
@@ -423,34 +346,36 @@ const Projects = () => {
           </div>
 
           {/* Pagination controls */}
-          {paginationInfo.totalPages > 1 && (
-            <div className="pagination-container">
-              <button
-                className="btn btn-secondary"
-                disabled={!paginationInfo.hasPrevPage}
-                onClick={() => setPage((p) => p - 1)}
-              >
-                Previous
-              </button>
-              <span className="pagination-info">
-                Page {paginationInfo.currentPage} of {paginationInfo.totalPages}
-              </span>
-              <button
-                className="btn btn-secondary"
-                disabled={!paginationInfo.hasNextPage}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                Next
-              </button>
-            </div>
-          )}
+          {
+            paginationInfo.totalPages > 1 && (
+              <div className="pagination-container">
+                <button
+                  className="btn btn-secondary"
+                  disabled={!paginationInfo.hasPrevPage}
+                  onClick={() => setPage((p) => p - 1)}
+                >
+                  Previous
+                </button>
+                <span className="pagination-info">
+                  Page {paginationInfo.currentPage} of {paginationInfo.totalPages}
+                </span>
+                <button
+                  className="btn btn-secondary"
+                  disabled={!paginationInfo.hasNextPage}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  Next
+                </button>
+              </div>
+            )
+          }
         </>
       )}
 
       {/* Creation Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New Project">
         {formError && <div className="alert alert-danger">{formError}</div>}
-        
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label className="form-label" htmlFor="projectName">Project Name</label>
@@ -543,16 +468,10 @@ const Projects = () => {
           </div>
         </form>
       </Modal>
-<<<<<<< HEAD
       {/* Edit Modal */}
       <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Project">
-=======
-
-      {/* Edit Project Modal */}
-      <Modal isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); setEditingProject(null); }} title="Edit Project">
->>>>>>> d6f2704 (modified)
         {editFormError && <div className="alert alert-danger">{editFormError}</div>}
-        
+
         <form onSubmit={handleEditSubmit}>
           <div className="form-group">
             <label className="form-label" htmlFor="editProjectName">Project Name</label>
@@ -630,11 +549,7 @@ const Projects = () => {
             <button
               type="button"
               className="btn btn-secondary"
-<<<<<<< HEAD
               onClick={() => setIsEditModalOpen(false)}
-=======
-              onClick={() => { setIsEditModalOpen(false); setEditingProject(null); }}
->>>>>>> d6f2704 (modified)
               disabled={editSubmitting}
             >
               Cancel

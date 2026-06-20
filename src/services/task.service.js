@@ -69,6 +69,9 @@ const getTasks = async (userId, filters = {}) => {
 
   const tasks = await prisma.task.findMany({
     where: whereClause,
+    include: {
+      project: true,
+    },
     orderBy: { createdAt: 'desc' },
   });
 
